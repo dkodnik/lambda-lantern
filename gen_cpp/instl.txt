@@ -1,0 +1,94 @@
+# Install Git.
+#--- Install nvm (https://github.com/creationix/nvm).
+#+++ Install Panda3D (https://www.panda3d.org/download/sdk-1-10-1/).
+#+++ Install Haskell Stack (https://docs.haskellstack.org/en/stable/README/).
+
+############################################################################################
+
+sudo apt install git
+sudo apt install libtinfo-dev
+sudo apt install build-essential libssl-dev
+
+# Panda3D 1.10.9 для Ubuntu 20.04(LTS)
+wget https://www.panda3d.org/download/panda3d-1.10.9/panda3d1.10_1.10.9~focal_amd64.deb
+
+#Haskell
+wget -qO- https://get.haskellstack.org/ | sh
+
+############################################################################################
+
+cd
+
+# Install PureScript Native (https://github.com/andyarvanitis/purescript-native).
+
+git clone https://github.com/andyarvanitis/purescript-native.git
+cd purescript-native
+#!--- git checkout aa857adec6aa40edac91bcacfe4c3b7c5f1c3f2d
+git checkout cpp
+stack install
+
+cd
+
+# Update path for PureScript Native compiler pscpp.
+
+export PATH="${PATH}:${HOME}/.local/bin"
+
+# Download and install the FFI exports.
+
+git clone https://github.com/lettier/purescript-native-ffi.git
+cd purescript-native-ffi
+git checkout lambda-lantern
+
+cd
+
+git clone https://github.com/lettier/lambda-lantern.git
+
+# Note the trailing dot.
+cp -nr purescript-native-ffi/. lambda-lantern/ffi/
+
+cd lambda-lantern
+
+# Install Node.js.
+
+#!--- nvm install `cat .nvmrc` && nvm use
+sudo apt install nodejs
+sudo apt install npm
+node -v
+npm -v
+
+# Install PureScript and psc-package.
+
+#!--- npm install -g purescript@0.13.0 psc-package-bin-simple@3.0.1
+npm install purescript@0.13.0 psc-package-bin-simple@3.0.1
+
+export PATH="${PATH}:${HOME}/lambda-lantern/node_modules/.bin"
+
+# Install the PureScript dependencies.
+psc-package install
+
+# Build Lambda Lantern.
+# Double check the include and lib paths.
+# You may need additional flags for your platform.
+
+make \
+  CXXFLAGS=" \
+    -fmax-errors=1 \
+    -I/usr/include/python \
+    -I/usr/include/panda3d \
+    -I/usr/include/freetype2" \
+  LDFLAGS=" \
+    -L/usr/lib/panda3d \
+    -lp3framework \
+    -lpanda \
+    -lpandafx \
+    -lpandaexpress \
+    -lp3dtoolconfig \
+    -lp3dtool \
+    -lp3pystub \
+    -lp3direct \
+    -pthread \
+    -lpthread"
+
+# Run Lambda Lantern.
+
+LAMBDA_LANTERN_ASSETS_PATH="./assets" ./output/bin/lambda-lantern
